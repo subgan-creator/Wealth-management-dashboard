@@ -98,7 +98,7 @@ export function CreateRequestDialog({ open, onOpenChange, onSubmit }: CreateRequ
 
     // Determine routing based on business event
     const routedTeam = mockTeams.find((team) =>
-      team.businessEvents.includes(formData.businessEventId)
+      team.businessEventIds?.includes(formData.businessEventId)
     );
 
     // Calculate SLA deadline (example: 48 hours from now)
