@@ -13,6 +13,8 @@ import { mockRequests } from '@/lib/mock-data';
 import type { WorkRequest, SearchFilters as SearchFiltersType } from '@/lib/types';
 
 export default function DashboardPage() {
+  console.log('[v0] DashboardPage rendering, mockRequests count:', mockRequests?.length);
+  
   const [selectedBusinessEventId, setSelectedBusinessEventId] = useState<string | undefined>('all');
   const [selectedSubEventId, setSelectedSubEventId] = useState<string | undefined>();
   const [selectedRequest, setSelectedRequest] = useState<WorkRequest | undefined>();

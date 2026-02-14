@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import type { BusinessEvent, SubEvent } from '@/lib/types';
-import { mockBusinessEvents, mockRequests, currentUser } from '@/lib/mock-data';
+import { mockBusinessEvents, mockRequests } from '@/lib/mock-data';
+import { useUser } from '@/lib/user-context';
 
 interface BusinessEventTreeProps {
   onEventSelect: (businessEventId: string, subEventId?: string) => void;
@@ -20,6 +21,7 @@ export function BusinessEventTree({
   selectedSubEventId,
 }: BusinessEventTreeProps) {
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set(['be-1', 'be-3']));
+  const { currentUser } = useUser();
 
   // Filter business events based on user preferences
   const visibleEvents = mockBusinessEvents.filter((event) =>

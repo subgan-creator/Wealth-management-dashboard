@@ -608,13 +608,3 @@ export const mockNotifications: Notification[] = [
     createdAt: new Date(Date.now() - 120 * 60 * 1000),
   },
 ];
-
-// Current user (can be switched)
-export let currentUser: User = mockUsers[0];
-
-export function setCurrentUser(userId: string) {
-  const user = mockUsers.find(u => u.id === userId);
-  if (user) {
-    currentUser = user;
-  }
-}

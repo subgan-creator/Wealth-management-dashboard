@@ -12,7 +12,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import { currentUser, mockUsers, setCurrentUser, mockNotifications } from '@/lib/mock-data';
+import { mockUsers, mockNotifications } from '@/lib/mock-data';
+import { useUser } from '@/lib/user-context';
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -21,11 +22,11 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children, sidebar }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const { currentUser, setCurrentUser: setUser } = useUser();
   const unreadNotifications = mockNotifications.filter(n => !n.isRead && n.userId === currentUser.id).length;
 
   const handleUserSwitch = (userId: string) => {
-    setCurrentUser(userId);
-    window.location.reload();
+    setUser(userId);
   };
 
   return (
