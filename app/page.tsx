@@ -9,20 +9,40 @@ import { StatsOverview } from '@/components/stats-overview';
 import { SearchFilters } from '@/components/search-filters';
 import { RequestList } from '@/components/request-list';
 import { RequestDetail } from '@/components/request-detail';
+import { CreateRequestDialog } from '@/components/create-request-dialog';
 import { mockRequests } from '@/lib/mock-data';
 import type { WorkRequest, SearchFilters as SearchFiltersType } from '@/lib/types';
 
 export default function DashboardPage() {
-  console.log('[v0] DashboardPage rendering, mockRequests count:', mockRequests?.length);
-  
   const [selectedBusinessEventId, setSelectedBusinessEventId] = useState<string | undefined>('all');
   const [selectedSubEventId, setSelectedSubEventId] = useState<string | undefined>();
   const [selectedRequest, setSelectedRequest] = useState<WorkRequest | undefined>();
   const [filters, setFilters] = useState<SearchFiltersType>({});
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [requests, setRequests] = useState<WorkRequest[]>(mockRequests);
+
+  const handleCreateRequest = (newRequestData: Omit<WorkRequest, 'id' | 'createdAt' | 'updatedAt' | 'timeline'>) => {
+    const newRequest: WorkRequest = {
+      ...newRequestData,
+      id: `REQ-${Date.now()}`,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      timeline: [
+        {
+          date: new Date(),
+          action: 'Request created',
+          user: newRequestData.advisorName,
+        },
+      ],
+    };
+
+    setRequests([newRequest, ...requests]);
+    console.log('[v0] New request created:', newRequest);
+  };
 
   // Filter requests based on business event, sub-event, and search filters
   const filteredRequests = useMemo(() => {
-    let filtered = [...mockRequests];
+    let filtered = [...requests];
 
     // Filter by business event
     if (selectedBusinessEventId && selectedBusinessEventId !== 'all') {
@@ -135,12 +155,12 @@ export default function DashboardPage() {
                 Monitor and manage all work requests across your organization
               </p>
             </div>
-            <Button className="gap-2">
+            <Button className="gap-2" onClick={() => setCreateDialogOpen(true)}>
               <Plus className="h-4 w-4" />
               New Request
             </Button>
           </div>
-          <StatsOverview requests={mockRequests} />
+          <StatsOverview requests={requests} />
         </div>
 
         {/* Search and Filters */}
@@ -166,6 +186,13 @@ export default function DashboardPage() {
 
       {/* Request Detail Panel */}
       {selectedRequest && <RequestDetail request={selectedRequest} onClose={handleCloseDetail} />}
+
+      {/* Create Request Dialog */}
+      <CreateRequestDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSubmit={handleCreateRequest}
+      />
     </DashboardLayout>
   );
 }
