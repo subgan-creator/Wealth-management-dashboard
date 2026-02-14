@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { mockBusinessEvents, mockTeams } from '@/lib/mock-data';
+import { mockBusinessEvents, mockTeams, mockUsers } from '@/lib/mock-data';
 import { useUser } from '@/lib/user-context';
 import type { WorkRequest } from '@/lib/types';
 
