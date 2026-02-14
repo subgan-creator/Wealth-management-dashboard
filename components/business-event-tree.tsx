@@ -59,10 +59,10 @@ export function BusinessEventTree({
   return (
     <div className="py-4">
       <div className="flex items-center justify-between px-4 mb-3">
-        <h2 className="text-xs font-semibold uppercase tracking-wide text-sidebar-foreground/60">
+        <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
           Business Events
         </h2>
-        <Button variant="ghost" size="icon" className="h-6 w-6 text-sidebar-foreground/60 hover:text-sidebar-foreground">
+        <Button variant="ghost" size="icon" className="h-6 w-6 text-muted-foreground hover:text-foreground">
           <Settings className="h-3.5 w-3.5" />
         </Button>
       </div>
@@ -74,12 +74,12 @@ export function BusinessEventTree({
           className={cn(
             'flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors',
             !selectedBusinessEventId || selectedBusinessEventId === 'all'
-              ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-              : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+              ? 'bg-accent text-accent-foreground font-medium'
+              : 'text-foreground hover:bg-muted hover:text-foreground'
           )}
         >
           <span className="font-medium">All Requests</span>
-          <Badge variant="secondary" className="ml-2 bg-sidebar-accent">
+          <Badge variant="secondary" className="ml-2">
             {mockRequests.filter((r) => r.status !== 'completed').length}
           </Badge>
         </button>
@@ -96,7 +96,7 @@ export function BusinessEventTree({
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => toggleEvent(event.id)}
-                  className="flex items-center justify-center w-5 h-5 rounded hover:bg-sidebar-accent/50 text-sidebar-foreground/60"
+                  className="flex items-center justify-center w-5 h-5 rounded hover:bg-muted text-muted-foreground"
                 >
                   {isExpanded ? (
                     <ChevronDown className="h-3.5 w-3.5" />
@@ -109,8 +109,8 @@ export function BusinessEventTree({
                   className={cn(
                     'flex flex-1 items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors',
                     isSelected
-                      ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                      : 'text-sidebar-foreground/80 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                      ? 'bg-accent text-accent-foreground font-medium'
+                      : 'text-foreground hover:bg-muted hover:text-foreground'
                   )}
                 >
                   <span className="font-medium truncate">{event.name}</span>
@@ -120,7 +120,7 @@ export function BusinessEventTree({
                         {slaWarnings}
                       </Badge>
                     )}
-                    <Badge variant="secondary" className="h-5 px-1.5 text-xs bg-sidebar-accent">
+                    <Badge variant="secondary" className="h-5 px-1.5 text-xs">
                       {eventCount}
                     </Badge>
                   </div>
@@ -129,7 +129,7 @@ export function BusinessEventTree({
 
               {/* Sub-events */}
               {isExpanded && (
-                <div className="ml-6 space-y-1 border-l border-sidebar-border pl-2">
+                <div className="ml-6 space-y-1 border-l border-border pl-2">
                   {event.subEvents.map((subEvent) => {
                     const isSubSelected =
                       selectedBusinessEventId === event.id && selectedSubEventId === subEvent.id;
@@ -143,8 +143,8 @@ export function BusinessEventTree({
                         className={cn(
                           'flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm transition-colors',
                           isSubSelected
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground'
-                            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground'
+                            ? 'bg-accent text-accent-foreground font-medium'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground'
                         )}
                       >
                         <span className="truncate text-xs">{subEvent.name}</span>
@@ -155,7 +155,7 @@ export function BusinessEventTree({
                             </Badge>
                           )}
                           {subEventCount > 0 && (
-                            <Badge variant="secondary" className="h-4 px-1 text-xs bg-sidebar-accent">
+                            <Badge variant="secondary" className="h-4 px-1 text-xs">
                               {subEventCount}
                             </Badge>
                           )}
@@ -174,7 +174,7 @@ export function BusinessEventTree({
         <Button
           variant="outline"
           size="sm"
-          className="w-full justify-start gap-2 border-sidebar-border text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          className="w-full justify-start gap-2"
         >
           <Plus className="h-4 w-4" />
           Add Business Event

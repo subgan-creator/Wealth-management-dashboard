@@ -35,18 +35,18 @@ export function DashboardLayout({ children, sidebar }: DashboardLayoutProps) {
       <aside
         className={`${
           sidebarOpen ? 'w-72' : 'w-0'
-        } flex-shrink-0 border-r border-sidebar-border bg-sidebar text-sidebar-foreground transition-all duration-300 overflow-hidden`}
+        } flex-shrink-0 border-r border-border bg-card text-foreground transition-all duration-300 overflow-hidden`}
       >
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
-          <div className="flex h-16 items-center justify-between border-b border-sidebar-border px-4">
+          <div className="flex h-16 items-center justify-between border-b border-border px-4">
             <div className="flex items-center gap-2">
               <div className="flex h-8 w-8 items-center justify-center rounded bg-primary text-primary-foreground font-semibold text-sm">
                 WM
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-semibold">Wealth Management</span>
-                <span className="text-xs text-sidebar-foreground/60">Request Dashboard</span>
+                <span className="text-sm font-semibold text-foreground">Wealth Management</span>
+                <span className="text-xs text-muted-foreground">Request Dashboard</span>
               </div>
             </div>
           </div>
