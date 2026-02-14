@@ -10,7 +10,7 @@ import { SearchFilters } from '@/components/search-filters';
 import { RequestList } from '@/components/request-list';
 import { RequestDetail } from '@/components/request-detail';
 import { CreateRequestDialog } from '@/components/create-request-dialog';
-import { mockRequests } from '@/lib/mock-data';
+import { mockRequests, mockBusinessEvents } from '@/lib/mock-data';
 import type { WorkRequest, SearchFilters as SearchFiltersType } from '@/lib/types';
 
 export default function DashboardPage() {
@@ -123,17 +123,37 @@ export default function DashboardPage() {
     setSelectedRequest(undefined);
   };
 
-  const getPageTitle = () => {
+  const getPageInfo = () => {
     if (selectedBusinessEventId === 'all' || !selectedBusinessEventId) {
-      return 'All Requests';
+      return {
+        title: 'Dashboard Overview',
+        subtitle: 'Monitor and manage all work requests across your organization',
+        showStats: true,
+      };
     }
 
-    const businessEvent = mockRequests.find((r) => r.businessEventId === selectedBusinessEventId);
-    if (!businessEvent) return 'Requests';
+    const businessEvent = mockBusinessEvents.find((be) => be.id === selectedBusinessEventId);
+    if (!businessEvent) {
+      return { title: 'Requests', subtitle: '', showStats: false };
+    }
 
-    // This would normally look up the business event name
-    return selectedSubEventId ? 'Filtered Requests' : 'Business Event Requests';
+    if (selectedSubEventId) {
+      const subEvent = businessEvent.subEvents.find((se) => se.id === selectedSubEventId);
+      return {
+        title: `${businessEvent.name} - ${subEvent?.name || 'Sub-Event'}`,
+        subtitle: subEvent?.description || businessEvent.description,
+        showStats: false,
+      };
+    }
+
+    return {
+      title: businessEvent.name,
+      subtitle: businessEvent.description,
+      showStats: false,
+    };
   };
+
+  const pageInfo = getPageInfo();
 
   return (
     <DashboardLayout
@@ -146,36 +166,47 @@ export default function DashboardPage() {
       }
     >
       <div className="space-y-6">
-        {/* Stats Overview */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground">Dashboard Overview</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Monitor and manage all work requests across your organization
-              </p>
-            </div>
-            <Button className="gap-2" onClick={() => setCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4" />
-              New Request
-            </Button>
+        {/* Page Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">{pageInfo.title}</h2>
+            {pageInfo.subtitle && (
+              <p className="text-sm text-muted-foreground mt-1">{pageInfo.subtitle}</p>
+            )}
           </div>
-          <StatsOverview requests={requests} />
+          <Button className="gap-2" onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            New Request
+          </Button>
         </div>
+
+        {/* Stats Overview - Only show on landing page */}
+        {pageInfo.showStats && (
+          <div>
+            <StatsOverview requests={requests} />
+          </div>
+        )}
 
         {/* Search and Filters */}
         <div>
-          <h3 className="text-lg font-semibold text-foreground mb-4">{getPageTitle()}</h3>
+          {!pageInfo.showStats && (
+            <h3 className="text-lg font-semibold text-foreground mb-4">
+              Requests ({filteredRequests.length})
+            </h3>
+          )}
           <SearchFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
         {/* Request List */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-muted-foreground">
-              Showing {filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''}
-            </p>
-          </div>
+          {pageInfo.showStats && (
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-lg font-semibold text-foreground">All Requests</h3>
+              <p className="text-sm text-muted-foreground">
+                {filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''}
+              </p>
+            </div>
+          )}
           <RequestList
             requests={filteredRequests}
             onRequestSelect={handleRequestSelect}
