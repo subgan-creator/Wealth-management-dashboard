@@ -139,7 +139,7 @@ export function CreateRequestDialog({ open, onOpenChange, onSubmit }: CreateRequ
     if (!formData.businessEventId) return null;
 
     const routedTeam = mockTeams.find((team) =>
-      team.businessEvents.includes(formData.businessEventId)
+      team.businessEventIds?.includes(formData.businessEventId)
     );
 
     return routedTeam ? (
