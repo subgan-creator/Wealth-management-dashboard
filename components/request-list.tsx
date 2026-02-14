@@ -196,10 +196,8 @@ export function RequestList({ requests, onRequestSelect, selectedRequestId }: Re
               <div className="flex items-center justify-between pt-3 border-t border-border">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>
-                    {mounted
-                      ? `Created ${formatDate(request.createdAt)}`
-                      : `Created ${request.createdAt.toLocaleDateString()}`}
+                  <span suppressHydrationWarning>
+                    {mounted ? `Created ${formatDate(request.createdAt)}` : 'Created recently'}
                   </span>
                 </div>
                 {mounted && timeRemaining && (
