@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Clock, AlertCircle, CheckCircle2, User, Building2, TrendingUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
@@ -60,6 +61,12 @@ const slaConfig: Record<SLAStatus, { className: string; label: string }> = {
 };
 
 export function RequestList({ requests, onRequestSelect, selectedRequestId }: RequestListProps) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const formatTimeRemaining = (request: WorkRequest) => {
     if (request.status === 'completed' || request.status === 'cancelled') {
       return null;
@@ -189,9 +196,13 @@ export function RequestList({ requests, onRequestSelect, selectedRequestId }: Re
               <div className="flex items-center justify-between pt-3 border-t border-border">
                 <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Clock className="h-3.5 w-3.5" />
-                  <span>Created {formatDate(request.createdAt)}</span>
+                  <span>
+                    {mounted
+                      ? `Created ${formatDate(request.createdAt)}`
+                      : `Created ${request.createdAt.toLocaleDateString()}`}
+                  </span>
                 </div>
-                {timeRemaining && (
+                {mounted && timeRemaining && (
                   <div className={cn('flex items-center gap-1.5 text-xs', timeRemaining.className)}>
                     <AlertCircle className="h-3.5 w-3.5" />
                     <span className="font-medium">{timeRemaining.text}</span>
