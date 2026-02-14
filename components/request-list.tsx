@@ -152,18 +152,15 @@ export function RequestList({ requests, onRequestSelect, selectedRequestId }: Re
         const priorityInfo = priorityConfig[request.priority];
 
         return (
-          <Card
-            key={request.id}
-            onClick={() => onRequestSelect(request)}
-            className={cn(
-              'cursor-pointer transition-all hover:shadow-md border-l-4',
-              isSelected
-                ? 'border-l-primary bg-accent/5 shadow-md'
-                : 'border-l-transparent hover:border-l-primary/30',
-              request.slaStatus === 'breached' && 'border-l-destructive',
-              request.slaStatus === 'at-risk' && !isSelected && 'border-l-warning'
-            )}
-          >
+        <Card
+          key={request.id}
+          className={cn(
+            'cursor-pointer transition-all hover:shadow-md',
+            selectedRequestId === request.id && 'ring-2 ring-primary'
+          )}
+          onClick={() => onRequestSelect(request)}
+          suppressHydrationWarning
+        >
             <div className="p-4">
               {/* Header */}
               <div className="flex items-start justify-between gap-3 mb-3">
