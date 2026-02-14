@@ -101,6 +101,11 @@ export function CreateRequestDialog({ open, onOpenChange, onSubmit }: CreateRequ
       team.businessEventIds?.includes(formData.businessEventId)
     );
 
+    // Find a user from the routed team
+    const teamMember = routedTeam
+      ? mockUsers.find((user) => user.teamId === routedTeam.id)
+      : undefined;
+
     // Calculate SLA deadline (example: 48 hours from now)
     const slaDeadline = new Date();
     slaDeadline.setHours(slaDeadline.getHours() + 48);
@@ -116,7 +121,7 @@ export function CreateRequestDialog({ open, onOpenChange, onSubmit }: CreateRequ
       clientId: formData.clientId,
       advisorName: currentUser.name,
       advisorId: currentUser.id,
-      assignedTo: routedTeam?.members[0] || 'unassigned',
+      assignedTo: teamMember?.name || 'Unassigned',
       teamId: routedTeam?.id || 'unassigned',
       slaDeadline,
       slaStatus: 'on-track',
