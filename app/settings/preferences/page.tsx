@@ -1,31 +1,46 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Eye, EyeOff, Mail, AlertTriangle, CheckCircle2, Info, ChevronDown, ChevronRight } from 'lucide-react';
+import { Bell, Eye, EyeOff, Mail, ChevronDown, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Info } from 'lucide-react';
 import { mockBusinessEvents, mockUsers } from '@/lib/mock-data';
 import { useUser } from '@/lib/user-context';
+
+// Type for per-event notification preferences
+type EventNotificationPrefs = {
+  [eventId: string]: {
+    inApp: boolean;
+    email: boolean;
+  };
+};
 
 export default function PreferencesPage() {
   const { currentUser, setCurrentUser } = useUser();
   const [visibleEvents, setVisibleEvents] = useState<string[]>(
     currentUser.preferences.visibleBusinessEvents || []
   );
-  const [notificationPrefs, setNotificationPrefs] = useState(
-    currentUser.preferences.notifications || {
-      inApp: true,
-      email: true,
-      slaWarnings: true,
-      assignments: true,
-      statusUpdates: true,
-    }
+  
+  // Initialize per-event notification preferences
+  const initializeEventNotifications = (): EventNotificationPrefs => {
+    const prefs: EventNotificationPrefs = {};
+    mockBusinessEvents.forEach((event) => {
+      prefs[event.id] = { inApp: true, email: true };
+      event.subEvents.forEach((subEvent) => {
+        prefs[subEvent.id] = { inApp: true, email: false };
+      });
+    });
+    return prefs;
+  };
+
+  const [eventNotifications, setEventNotifications] = useState<EventNotificationPrefs>(
+    initializeEventNotifications()
   );
   const [hasChanges, setHasChanges] = useState(false);
   const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
@@ -58,8 +73,18 @@ export default function PreferencesPage() {
     setHasChanges(true);
   };
 
-  const handleNotificationToggle = (key: keyof typeof notificationPrefs, value: boolean) => {
-    setNotificationPrefs((prev) => ({ ...prev, [key]: value }));
+  const handleEventNotificationToggle = (
+    eventId: string,
+    type: 'inApp' | 'email',
+    value: boolean
+  ) => {
+    setEventNotifications((prev) => ({
+      ...prev,
+      [eventId]: {
+        ...prev[eventId],
+        [type]: value,
+      },
+    }));
     setHasChanges(true);
   };
 
@@ -70,7 +95,8 @@ export default function PreferencesPage() {
       preferences: {
         ...currentUser.preferences,
         visibleBusinessEvents: visibleEvents,
-        notifications: notificationPrefs,
+        notifications: currentUser.preferences.notifications, // Keep existing structure
+        eventNotifications, // Add per-event notifications
       },
     };
 
@@ -85,13 +111,13 @@ export default function PreferencesPage() {
 
     console.log('[v0] User preferences saved:', {
       visibleEvents,
-      notifications: notificationPrefs,
+      eventNotifications,
     });
   };
 
   const handleReset = () => {
     setVisibleEvents(currentUser.preferences.visibleBusinessEvents);
-    setNotificationPrefs(currentUser.preferences.notifications);
+    setEventNotifications(initializeEventNotifications());
     setHasChanges(false);
   };
 
@@ -101,7 +127,7 @@ export default function PreferencesPage() {
       <div>
         <h1 className="text-3xl font-bold text-foreground">User Preferences</h1>
         <p className="text-muted-foreground mt-2">
-          Customize your dashboard experience and notification settings
+          Customize your dashboard experience and notification settings per business event
         </p>
       </div>
 
@@ -114,7 +140,7 @@ export default function PreferencesPage() {
         </Alert>
       )}
 
-      {/* Role & Access Information - Moved to top */}
+      {/* Role & Access Information */}
       <Card className="bg-accent/10 border-accent/20">
         <CardHeader>
           <CardTitle>Role & Access Information</CardTitle>
@@ -142,49 +168,56 @@ export default function PreferencesPage() {
         </CardContent>
       </Card>
 
-      {/* Grid Layout for Event Access and Notifications */}
-      <div className="grid lg:grid-cols-2 gap-6">
-        {/* Event Access Control */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Eye className="h-5 w-5 text-primary" />
-                  Business Event Access
-                </CardTitle>
-                <CardDescription className="mt-1.5">
-                  Select which business events you want to see in your dashboard
-                </CardDescription>
-              </div>
+      {/* Event Access & Notification Preferences Grid */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Eye className="h-5 w-5 text-primary" />
+                Business Event Access & Notifications
+              </CardTitle>
+              <CardDescription className="mt-1.5">
+                Select which events to show and configure notification preferences for each event and sub-event
+              </CardDescription>
             </div>
-          </CardHeader>
-          <CardContent className="flex-1 flex flex-col">
-            <div className="flex items-center justify-between gap-2 mb-4">
-              <div className="text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">{visibleEvents.length}</span> of{' '}
-                {mockBusinessEvents.length} visible
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={handleSelectAll}>
+                Select All
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleDeselectAll}>
+                Clear All
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {/* Header Row */}
+            <div className="grid grid-cols-12 gap-4 pb-2 border-b text-sm font-medium text-muted-foreground">
+              <div className="col-span-6">Business Event / Sub-Event</div>
+              <div className="col-span-2 text-center">Visible</div>
+              <div className="col-span-2 text-center flex items-center justify-center gap-1">
+                <Bell className="h-3.5 w-3.5" />
+                In-App
               </div>
-              <div className="flex gap-2">
-                <Button variant="outline" size="sm" onClick={handleSelectAll}>
-                  Select All
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleDeselectAll}>
-                  Clear
-                </Button>
+              <div className="col-span-2 text-center flex items-center justify-center gap-1">
+                <Mail className="h-3.5 w-3.5" />
+                Email
               </div>
             </div>
 
-            <div className="grid gap-2 flex-1">
-              {mockBusinessEvents.map((event) => {
-                const isVisible = visibleEvents.includes(event.id);
-                const isExpanded = expandedEvents.has(event.id);
-                const subEventCount = event.subEvents.length;
+            {/* Event Rows */}
+            {mockBusinessEvents.map((event) => {
+              const isVisible = visibleEvents.includes(event.id);
+              const isExpanded = expandedEvents.has(event.id);
+              const subEventCount = event.subEvents.length;
 
-                return (
-                  <div key={event.id} className="rounded-md border bg-card">
-                    {/* Parent Business Event */}
-                    <div className="flex items-center gap-2 p-3">
+              return (
+                <div key={event.id} className="space-y-2">
+                  {/* Parent Business Event Row */}
+                  <div className="grid grid-cols-12 gap-4 items-center p-3 rounded-lg border bg-card hover:bg-muted/30 transition-colors">
+                    <div className="col-span-6 flex items-center gap-2">
                       <button
                         onClick={() => toggleEventExpansion(event.id)}
                         className="flex items-center justify-center w-5 h-5 rounded hover:bg-muted transition-colors"
@@ -196,162 +229,102 @@ export default function PreferencesPage() {
                           <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         )}
                       </button>
-                      <Checkbox
-                        id={event.id}
-                        checked={isVisible}
-                        onCheckedChange={(checked) => handleEventToggle(event.id, checked as boolean)}
-                      />
                       <div className="flex-1 min-w-0">
-                        <Label
-                          htmlFor={event.id}
-                          className="text-sm font-semibold cursor-pointer flex items-center gap-2"
-                        >
-                          {event.name}
-                          {isVisible ? (
-                            <Eye className="h-3.5 w-3.5 text-primary" />
-                          ) : (
-                            <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
-                          )}
-                        </Label>
-                        <Badge variant="secondary" className="text-xs mt-1">
-                          {subEventCount} sub-event{subEventCount !== 1 ? 's' : ''}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-semibold">{event.name}</span>
+                          <Badge variant="secondary" className="text-xs">
+                            {subEventCount}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
+                          {event.description}
+                        </p>
                       </div>
                     </div>
 
-                    {/* Sub-Events */}
-                    {isExpanded && subEventCount > 0 && (
-                      <div className="border-t bg-muted/20 px-3 py-2">
-                        <div className="grid gap-1.5 ml-7">
-                          {event.subEvents.map((subEvent) => (
-                            <div
-                              key={subEvent.id}
-                              className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted/50 transition-colors"
-                            >
-                              <div className="w-4 h-px bg-border" />
-                              <div className="flex-1 min-w-0">
-                                <p className="text-xs font-medium text-foreground">
-                                  {subEvent.name}
-                                </p>
-                                {subEvent.description && (
-                                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
-                                    {subEvent.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+                    <div className="col-span-2 flex justify-center">
+                      <Checkbox
+                        checked={isVisible}
+                        onCheckedChange={(checked) => handleEventToggle(event.id, checked as boolean)}
+                      />
+                    </div>
+
+                    <div className="col-span-2 flex justify-center">
+                      <Switch
+                        checked={eventNotifications[event.id]?.inApp ?? true}
+                        onCheckedChange={(checked) =>
+                          handleEventNotificationToggle(event.id, 'inApp', checked)
+                        }
+                        disabled={!isVisible}
+                      />
+                    </div>
+
+                    <div className="col-span-2 flex justify-center">
+                      <Switch
+                        checked={eventNotifications[event.id]?.email ?? true}
+                        onCheckedChange={(checked) =>
+                          handleEventNotificationToggle(event.id, 'email', checked)
+                        }
+                        disabled={!isVisible}
+                      />
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* Notification Preferences */}
-        <Card className="flex flex-col">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-primary" />
-              Notification Preferences
-            </CardTitle>
-            <CardDescription className="mt-1.5">
-              Choose how you want to receive notifications
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1">
-            <div className="space-y-4">
-              {/* In-App Notifications */}
-              <div className="flex items-center justify-between p-3 rounded-md border bg-card">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium flex items-center gap-2 cursor-pointer">
-                    <Bell className="h-4 w-4" />
-                    In-App Notifications
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Dashboard notification center
-                  </p>
-                </div>
-                <Switch
-                  checked={notificationPrefs.inApp}
-                  onCheckedChange={(checked) => handleNotificationToggle('inApp', checked)}
-                />
-              </div>
+                  {/* Sub-Events */}
+                  {isExpanded && subEventCount > 0 && (
+                    <div className="ml-8 space-y-2">
+                      {event.subEvents.map((subEvent) => (
+                        <div
+                          key={subEvent.id}
+                          className="grid grid-cols-12 gap-4 items-center p-2.5 rounded-md border bg-muted/20 hover:bg-muted/40 transition-colors"
+                        >
+                          <div className="col-span-6 flex items-center gap-2 pl-4">
+                            <div className="w-4 h-px bg-border" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium">{subEvent.name}</p>
+                              {subEvent.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                                  {subEvent.description}
+                                </p>
+                              )}
+                            </div>
+                          </div>
 
-              {/* Email Notifications */}
-              <div className="flex items-center justify-between p-3 rounded-md border bg-card">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium flex items-center gap-2 cursor-pointer">
-                    <Mail className="h-4 w-4" />
-                    Email Notifications
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Email alerts for updates
-                  </p>
-                </div>
-                <Switch
-                  checked={notificationPrefs.email}
-                  onCheckedChange={(checked) => handleNotificationToggle('email', checked)}
-                />
-              </div>
+                          <div className="col-span-2 flex justify-center">
+                            <span className="text-xs text-muted-foreground">
+                              {isVisible ? 'Included' : 'Hidden'}
+                            </span>
+                          </div>
 
-              {/* SLA Warnings */}
-              <div className="flex items-center justify-between p-3 rounded-md border bg-card">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium flex items-center gap-2 cursor-pointer">
-                    <AlertTriangle className="h-4 w-4 text-warning" />
-                    SLA Warnings
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Approaching or breached deadlines
-                  </p>
-                </div>
-                <Switch
-                  checked={notificationPrefs.slaWarnings}
-                  onCheckedChange={(checked) => handleNotificationToggle('slaWarnings', checked)}
-                />
-              </div>
+                          <div className="col-span-2 flex justify-center">
+                            <Switch
+                              checked={eventNotifications[subEvent.id]?.inApp ?? true}
+                              onCheckedChange={(checked) =>
+                                handleEventNotificationToggle(subEvent.id, 'inApp', checked)
+                              }
+                              disabled={!isVisible}
+                            />
+                          </div>
 
-              {/* Request Assignments */}
-              <div className="flex items-center justify-between p-3 rounded-md border bg-card">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium flex items-center gap-2 cursor-pointer">
-                    <CheckCircle2 className="h-4 w-4 text-success" />
-                    Request Assignments
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    New assignments to you or team
-                  </p>
+                          <div className="col-span-2 flex justify-center">
+                            <Switch
+                              checked={eventNotifications[subEvent.id]?.email ?? false}
+                              onCheckedChange={(checked) =>
+                                handleEventNotificationToggle(subEvent.id, 'email', checked)
+                              }
+                              disabled={!isVisible}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <Switch
-                  checked={notificationPrefs.assignments}
-                  onCheckedChange={(checked) => handleNotificationToggle('assignments', checked)}
-                />
-              </div>
-
-              {/* Status Updates */}
-              <div className="flex items-center justify-between p-3 rounded-md border bg-card">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-medium flex items-center gap-2 cursor-pointer">
-                    <Info className="h-4 w-4 text-accent" />
-                    Status Updates
-                  </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Request status changes
-                  </p>
-                </div>
-                <Switch
-                  checked={notificationPrefs.statusUpdates}
-                  onCheckedChange={(checked) => handleNotificationToggle('statusUpdates', checked)}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Action Buttons */}
       <div className="flex items-center justify-end gap-3 pt-4 border-t">

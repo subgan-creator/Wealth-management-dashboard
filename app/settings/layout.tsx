@@ -67,9 +67,9 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       </header>
 
       <div className="container mx-auto px-6 py-8">
-        <div className="flex gap-8">
+        <div className="flex gap-6">
           {/* Sidebar Navigation */}
-          <aside className="w-64 flex-shrink-0">
+          <aside className="w-56 flex-shrink-0">
             <nav className="space-y-1">
               {settingsNavItems.map((item) => {
                 const isActive = pathname === item.href;
