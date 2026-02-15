@@ -16,9 +16,17 @@ import { useUser } from '@/lib/user-context';
 export default function PreferencesPage() {
   const { currentUser, setCurrentUser } = useUser();
   const [visibleEvents, setVisibleEvents] = useState<string[]>(
-    currentUser.preferences.visibleBusinessEvents
+    currentUser.preferences.visibleBusinessEvents || []
   );
-  const [notificationPrefs, setNotificationPrefs] = useState(currentUser.preferences.notifications);
+  const [notificationPrefs, setNotificationPrefs] = useState(
+    currentUser.preferences.notifications || {
+      inApp: true,
+      email: true,
+      slaWarnings: true,
+      assignments: true,
+      statusUpdates: true,
+    }
+  );
   const [hasChanges, setHasChanges] = useState(false);
 
   const handleEventToggle = (eventId: string, checked: boolean) => {
