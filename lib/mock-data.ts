@@ -280,10 +280,12 @@ export const mockUsers: User[] = [
     teamId: 'team-1',
     preferences: {
       visibleBusinessEvents: ['be-1', 'be-2', 'be-4', 'be-5'],
-      notificationSettings: {
+      notifications: {
         inApp: true,
         email: true,
-        sms: false,
+        slaWarnings: true,
+        assignments: true,
+        statusUpdates: true,
       },
     },
   },
@@ -295,10 +297,12 @@ export const mockUsers: User[] = [
     teamId: 'team-2',
     preferences: {
       visibleBusinessEvents: ['be-3'],
-      notificationSettings: {
+      notifications: {
         inApp: true,
         email: true,
-        sms: true,
+        slaWarnings: true,
+        assignments: true,
+        statusUpdates: false,
       },
     },
   },
@@ -310,10 +314,12 @@ export const mockUsers: User[] = [
     teamId: 'team-1',
     preferences: {
       visibleBusinessEvents: ['be-1', 'be-2', 'be-3', 'be-4', 'be-5', 'be-6'],
-      notificationSettings: {
+      notifications: {
         inApp: true,
         email: true,
-        sms: false,
+        slaWarnings: true,
+        assignments: true,
+        statusUpdates: true,
       },
     },
   },
@@ -341,10 +347,12 @@ export const mockUsers: User[] = [
     teamId: 'team-4',
     preferences: {
       visibleBusinessEvents: ['be-5'],
-      notificationSettings: {
+      notifications: {
         inApp: true,
         email: true,
-        sms: false,
+        slaWarnings: true,
+        assignments: true,
+        statusUpdates: true,
       },
     },
   },

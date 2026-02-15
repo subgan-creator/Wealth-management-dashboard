@@ -20,10 +20,12 @@ export interface User {
 
 export interface UserPreferences {
   visibleBusinessEvents: string[]; // IDs of business events user can access
-  notificationSettings: {
+  notifications: {
     inApp: boolean;
     email: boolean;
-    sms: boolean;
+    slaWarnings: boolean;
+    assignments: boolean;
+    statusUpdates: boolean;
   };
   defaultFilters?: Record<string, any>;
 }

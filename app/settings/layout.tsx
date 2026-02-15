@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Settings, FolderTree, GitBranch, Users, Clock, ArrowLeft } from 'lucide-react';
+import { Settings, FolderTree, GitBranch, Users, Clock, ArrowLeft, UserCog } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -31,6 +31,12 @@ const settingsNavItems = [
     href: '/settings/sla',
     icon: Clock,
     description: 'Set SLA thresholds per event type',
+  },
+  {
+    title: 'User Preferences',
+    href: '/settings/preferences',
+    icon: UserCog,
+    description: 'Manage your event access and notifications',
   },
 ];
 
