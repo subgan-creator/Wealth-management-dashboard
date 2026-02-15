@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { X, ChevronRight, ChevronLeft, Check, AlertCircle } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -174,6 +174,10 @@ export function CreateRequestDialog({ open, onOpenChange, onSubmit }: CreateRequ
               <X className="h-4 w-4" />
             </Button>
           </div>
+          <DialogDescription>
+            Complete the form below to create a new work request. The system will automatically route
+            it to the appropriate team based on the selected business event.
+          </DialogDescription>
         </DialogHeader>
 
         {/* Progress Steps */}
