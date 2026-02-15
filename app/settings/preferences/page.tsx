@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Bell, Eye, EyeOff, Mail, AlertTriangle, CheckCircle2, Info } from 'lucide-react';
+import { Bell, Eye, EyeOff, Mail, AlertTriangle, CheckCircle2, Info, ChevronDown, ChevronRight } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,6 +28,17 @@ export default function PreferencesPage() {
     }
   );
   const [hasChanges, setHasChanges] = useState(false);
+  const [expandedEvents, setExpandedEvents] = useState<Set<string>>(new Set());
+
+  const toggleEventExpansion = (eventId: string) => {
+    const newExpanded = new Set(expandedEvents);
+    if (newExpanded.has(eventId)) {
+      newExpanded.delete(eventId);
+    } else {
+      newExpanded.add(eventId);
+    }
+    setExpandedEvents(newExpanded);
+  };
 
   const handleEventToggle = (eventId: string, checked: boolean) => {
     const updated = checked
@@ -125,7 +136,7 @@ export default function PreferencesPage() {
             </div>
             <div>
               <Label className="text-sm text-muted-foreground">Email</Label>
-              <p className="text-base font-semibold mt-1">{currentUser.email}</p>
+              <p className="text-base font-semibold mt-1 break-all">{currentUser.email}</p>
             </div>
           </div>
         </CardContent>
@@ -167,37 +178,72 @@ export default function PreferencesPage() {
             <div className="grid gap-2 flex-1">
               {mockBusinessEvents.map((event) => {
                 const isVisible = visibleEvents.includes(event.id);
+                const isExpanded = expandedEvents.has(event.id);
                 const subEventCount = event.subEvents.length;
 
                 return (
-                  <div
-                    key={event.id}
-                    className="flex items-center gap-3 p-3 rounded-md border bg-card hover:bg-muted/30 transition-colors"
-                  >
-                    <Checkbox
-                      id={event.id}
-                      checked={isVisible}
-                      onCheckedChange={(checked) => handleEventToggle(event.id, checked as boolean)}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <Label
-                        htmlFor={event.id}
-                        className="text-sm font-medium cursor-pointer flex items-center gap-2"
+                  <div key={event.id} className="rounded-md border bg-card">
+                    {/* Parent Business Event */}
+                    <div className="flex items-center gap-2 p-3">
+                      <button
+                        onClick={() => toggleEventExpansion(event.id)}
+                        className="flex items-center justify-center w-5 h-5 rounded hover:bg-muted transition-colors"
+                        aria-label={isExpanded ? 'Collapse' : 'Expand'}
                       >
-                        {event.name}
-                        {isVisible ? (
-                          <Eye className="h-3.5 w-3.5 text-primary" />
+                        {isExpanded ? (
+                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
                         ) : (
-                          <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         )}
-                      </Label>
-                      <p className="text-xs text-muted-foreground mt-0.5 line-clamp-1">
-                        {event.description}
-                      </p>
-                      <Badge variant="secondary" className="text-xs mt-1">
-                        {subEventCount} sub-event{subEventCount !== 1 ? 's' : ''}
-                      </Badge>
+                      </button>
+                      <Checkbox
+                        id={event.id}
+                        checked={isVisible}
+                        onCheckedChange={(checked) => handleEventToggle(event.id, checked as boolean)}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <Label
+                          htmlFor={event.id}
+                          className="text-sm font-semibold cursor-pointer flex items-center gap-2"
+                        >
+                          {event.name}
+                          {isVisible ? (
+                            <Eye className="h-3.5 w-3.5 text-primary" />
+                          ) : (
+                            <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                        </Label>
+                        <Badge variant="secondary" className="text-xs mt-1">
+                          {subEventCount} sub-event{subEventCount !== 1 ? 's' : ''}
+                        </Badge>
+                      </div>
                     </div>
+
+                    {/* Sub-Events */}
+                    {isExpanded && subEventCount > 0 && (
+                      <div className="border-t bg-muted/20 px-3 py-2">
+                        <div className="grid gap-1.5 ml-7">
+                          {event.subEvents.map((subEvent) => (
+                            <div
+                              key={subEvent.id}
+                              className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-muted/50 transition-colors"
+                            >
+                              <div className="w-4 h-px bg-border" />
+                              <div className="flex-1 min-w-0">
+                                <p className="text-xs font-medium text-foreground">
+                                  {subEvent.name}
+                                </p>
+                                {subEvent.description && (
+                                  <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                                    {subEvent.description}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })}
