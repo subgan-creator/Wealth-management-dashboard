@@ -133,6 +133,7 @@ export default function DashboardPage() {
   }, [selectedBusinessEventId, selectedSubEventId, filters]);
 
   const handleEventSelect = (businessEventId: string, subEventId?: string) => {
+    console.log('[v0] handleEventSelect called:', { businessEventId, subEventId });
     setSelectedBusinessEventId(businessEventId);
     setSelectedSubEventId(subEventId);
   };
@@ -173,6 +174,12 @@ export default function DashboardPage() {
   };
 
   const pageInfo = getPageInfo();
+
+  console.log('[v0] Current state:', { 
+    selectedBusinessEventId, 
+    selectedSubEventId,
+    hasSubEventId: !!selectedSubEventId 
+  });
 
   return (
     <DashboardLayout
@@ -222,10 +229,14 @@ export default function DashboardPage() {
 
         {/* Bottom Section - Sub-Event Detail Pane */}
         {selectedSubEventId && (() => {
+          console.log('[v0] Rendering sub-event pane section, selectedSubEventId:', selectedSubEventId);
           const businessEvent = mockBusinessEvents.find((be) => be.id === selectedBusinessEventId);
           const subEvent = businessEvent?.subEvents.find((se) => se.id === selectedSubEventId);
           
+          console.log('[v0] Found businessEvent:', businessEvent?.name, 'Found subEvent:', subEvent?.name);
+          
           if (subEvent && businessEvent) {
+            console.log('[v0] Rendering SubEventDetailPane component');
             return (
               <div className="flex-shrink-0">
                 <SubEventDetailPane
@@ -237,6 +248,7 @@ export default function DashboardPage() {
               </div>
             );
           }
+          console.log('[v0] Not rendering pane - missing subEvent or businessEvent');
           return null;
         })()}
       </div>
