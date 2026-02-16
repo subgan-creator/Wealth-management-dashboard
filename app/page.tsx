@@ -46,16 +46,6 @@ export default function DashboardPage() {
       router.replace('/overview');
     }
   }, [mounted, selectedBusinessEventId, router]);
-  
-  // Show loading during initial mount
-  if (!mounted) {
-    return null;
-  }
-  
-  // Redirect check
-  if (!selectedBusinessEventId) {
-    return null;
-  }
 
   const handleCreateRequest = (newRequestData: Omit<WorkRequest, 'id' | 'createdAt' | 'updatedAt' | 'timeline'>) => {
     const newRequest: WorkRequest = {
@@ -186,6 +176,11 @@ export default function DashboardPage() {
   };
 
   const pageInfo = getPageInfo();
+
+  // Show nothing during initial mount or if no event selected
+  if (!mounted || !selectedBusinessEventId) {
+    return null;
+  }
 
   return (
     <DashboardLayout
