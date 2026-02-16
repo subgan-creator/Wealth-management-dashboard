@@ -55,7 +55,7 @@ export function SubEventDetailPane({
   // Get recent activity from timeline
   const recentActivity = requests
     .flatMap((r) => 
-      r.timeline.map((t) => ({ ...t, requestId: r.id, requestTitle: r.title }))
+      r.auditLog.map((entry) => ({ ...entry, requestId: r.id, requestTitle: r.title, date: entry.timestamp }))
     )
     .sort((a, b) => b.date.getTime() - a.date.getTime())
     .slice(0, 10);
@@ -175,7 +175,7 @@ export function SubEventDetailPane({
                     <div className="flex-1 space-y-1">
                       <p className="text-foreground">{activity.action}</p>
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{activity.user}</span>
+                        <span>{activity.userName}</span>
                         <span>·</span>
                         <span>{activity.requestTitle}</span>
                         <span>·</span>
