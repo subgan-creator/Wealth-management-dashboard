@@ -10,6 +10,7 @@ import { StatsOverview } from '@/components/stats-overview';
 import { SearchFilters } from '@/components/search-filters';
 import { RequestList } from '@/components/request-list';
 import { CreateRequestDialog } from '@/components/create-request-dialog';
+import { SubEventDetailPane } from '@/components/sub-event-detail-pane';
 import { mockRequests, mockBusinessEvents } from '@/lib/mock-data';
 import type { WorkRequest, SearchFilters as SearchFiltersType } from '@/lib/types';
 
@@ -140,6 +141,10 @@ export default function DashboardPage() {
     router.push(`/request/${request.id}`);
   };
 
+  const handleCloseSubEventPane = () => {
+    setSelectedSubEventId(undefined);
+  };
+
   const getPageInfo = () => {
     if (selectedBusinessEventId === 'all') {
       return {
@@ -179,38 +184,61 @@ export default function DashboardPage() {
         />
       }
     >
-      <div className="space-y-6">
-        {/* Page Header */}
-        <div className="flex items-center justify-between">
+      <div className={selectedSubEventId ? 'flex flex-col h-[calc(100vh-4rem)]' : 'space-y-6'}>
+        {/* Top Section - Request List */}
+        <div className={selectedSubEventId ? 'flex-1 overflow-y-auto space-y-6 pr-2' : 'space-y-6'}>
+          {/* Page Header */}
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground">{pageInfo.title}</h2>
+              {pageInfo.subtitle && (
+                <p className="text-sm text-muted-foreground mt-1">{pageInfo.subtitle}</p>
+              )}
+            </div>
+            <Button className="gap-2" onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4" />
+              New Request
+            </Button>
+          </div>
+
+          {/* Search and Filters */}
           <div>
-            <h2 className="text-2xl font-bold text-foreground">{pageInfo.title}</h2>
-            {pageInfo.subtitle && (
-              <p className="text-sm text-muted-foreground mt-1">{pageInfo.subtitle}</p>
-            )}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-foreground">
+                {filteredRequests.length} Request{filteredRequests.length !== 1 ? 's' : ''}
+              </h3>
+            </div>
+            <SearchFilters filters={filters} onFiltersChange={setFilters} />
           </div>
-          <Button className="gap-2" onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            New Request
-          </Button>
+
+          {/* Request List */}
+          <div>
+            <RequestList
+              requests={filteredRequests}
+              onRequestSelect={handleRequestSelect}
+            />
+          </div>
         </div>
 
-        {/* Search and Filters */}
-        <div>
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">
-              {filteredRequests.length} Request{filteredRequests.length !== 1 ? 's' : ''}
-            </h3>
-          </div>
-          <SearchFilters filters={filters} onFiltersChange={setFilters} />
-        </div>
-
-        {/* Request List */}
-        <div>
-          <RequestList
-            requests={filteredRequests}
-            onRequestSelect={handleRequestSelect}
-          />
-        </div>
+        {/* Bottom Section - Sub-Event Detail Pane */}
+        {selectedSubEventId && (() => {
+          const businessEvent = mockBusinessEvents.find((be) => be.id === selectedBusinessEventId);
+          const subEvent = businessEvent?.subEvents.find((se) => se.id === selectedSubEventId);
+          
+          if (subEvent && businessEvent) {
+            return (
+              <div className="flex-shrink-0">
+                <SubEventDetailPane
+                  subEvent={subEvent}
+                  businessEventName={businessEvent.name}
+                  requests={filteredRequests}
+                  onClose={handleCloseSubEventPane}
+                />
+              </div>
+            );
+          }
+          return null;
+        })()}
       </div>
 
       {/* Create Request Dialog */}
