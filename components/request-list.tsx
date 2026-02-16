@@ -11,7 +11,6 @@ import { mockBusinessEvents } from '@/lib/mock-data';
 interface RequestListProps {
   requests: WorkRequest[];
   onRequestSelect: (request: WorkRequest) => void;
-  selectedRequestId?: string;
 }
 
 const priorityConfig: Record<RequestPriority, { label: string; className: string }> = {
@@ -60,7 +59,7 @@ const slaConfig: Record<SLAStatus, { className: string; label: string }> = {
   breached: { className: 'text-destructive', label: 'Breached' },
 };
 
-export function RequestList({ requests, onRequestSelect, selectedRequestId }: RequestListProps) {
+export function RequestList({ requests, onRequestSelect }: RequestListProps) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -147,17 +146,13 @@ export function RequestList({ requests, onRequestSelect, selectedRequestId }: Re
     <div className="space-y-3">
       {requests.map((request) => {
         const timeRemaining = formatTimeRemaining(request);
-        const isSelected = selectedRequestId === request.id;
         const statusInfo = statusConfig[request.status];
         const priorityInfo = priorityConfig[request.priority];
 
         return (
         <Card
           key={request.id}
-          className={cn(
-            'cursor-pointer transition-all hover:shadow-md',
-            selectedRequestId === request.id && 'ring-2 ring-primary'
-          )}
+          className="cursor-pointer transition-all hover:shadow-md"
           onClick={() => onRequestSelect(request)}
           suppressHydrationWarning
         >

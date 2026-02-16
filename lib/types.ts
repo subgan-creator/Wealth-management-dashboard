@@ -96,6 +96,7 @@ export interface WorkRequest {
   tags: string[];
   metadata: Record<string, any>;
   comments: Comment[];
+  attachments: Attachment[];
   auditLog: AuditEntry[];
 }
 
@@ -106,6 +107,17 @@ export interface Comment {
   content: string;
   createdAt: Date;
   isInternal: boolean; // Internal vs client-facing
+}
+
+export interface Attachment {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  fileType: string;
+  uploadedBy: string;
+  uploadedByName: string;
+  uploadedAt: Date;
+  url: string;
 }
 
 export interface AuditEntry {

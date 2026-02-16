@@ -565,8 +565,9 @@ function generateMockRequests(): WorkRequest[] {
       completedAt: sample.status === 'completed' ? new Date(now.getTime() - 24 * 60 * 60 * 1000) : undefined,
       tags: [],
       metadata: {},
-      comments: [],
-      auditLog: [
+    comments: [],
+    attachments: [],
+    auditLog: [
         {
           id: `audit-${index + 1}-1`,
           userId: advisor?.id || 'user-1',

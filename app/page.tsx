@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/dashboard-layout';
@@ -8,15 +9,14 @@ import { BusinessEventTree } from '@/components/business-event-tree';
 import { StatsOverview } from '@/components/stats-overview';
 import { SearchFilters } from '@/components/search-filters';
 import { RequestList } from '@/components/request-list';
-import { RequestDetail } from '@/components/request-detail';
 import { CreateRequestDialog } from '@/components/create-request-dialog';
 import { mockRequests, mockBusinessEvents } from '@/lib/mock-data';
 import type { WorkRequest, SearchFilters as SearchFiltersType } from '@/lib/types';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [selectedBusinessEventId, setSelectedBusinessEventId] = useState<string | undefined>('all');
   const [selectedSubEventId, setSelectedSubEventId] = useState<string | undefined>();
-  const [selectedRequest, setSelectedRequest] = useState<WorkRequest | undefined>();
   const [filters, setFilters] = useState<SearchFiltersType>({});
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [requests, setRequests] = useState<WorkRequest[]>(mockRequests);
@@ -112,15 +112,10 @@ export default function DashboardPage() {
   const handleEventSelect = (businessEventId: string, subEventId?: string) => {
     setSelectedBusinessEventId(businessEventId);
     setSelectedSubEventId(subEventId);
-    setSelectedRequest(undefined);
   };
 
   const handleRequestSelect = (request: WorkRequest) => {
-    setSelectedRequest(request);
-  };
-
-  const handleCloseDetail = () => {
-    setSelectedRequest(undefined);
+    router.push(`/request/${request.id}`);
   };
 
   const getPageInfo = () => {
@@ -210,13 +205,9 @@ export default function DashboardPage() {
           <RequestList
             requests={filteredRequests}
             onRequestSelect={handleRequestSelect}
-            selectedRequestId={selectedRequest?.id}
           />
         </div>
       </div>
-
-      {/* Request Detail Panel */}
-      {selectedRequest && <RequestDetail request={selectedRequest} onClose={handleCloseDetail} />}
 
       {/* Create Request Dialog */}
       <CreateRequestDialog
