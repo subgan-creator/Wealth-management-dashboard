@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/dashboard-layout';
@@ -16,31 +16,44 @@ import type { WorkRequest, SearchFilters as SearchFiltersType } from '@/lib/type
 
 export default function DashboardPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   
-  // Check URL params for initial selection
-  const [selectedBusinessEventId, setSelectedBusinessEventId] = useState<string | undefined>(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('event') || undefined;
-    }
-    return undefined;
-  });
-  
-  const [selectedSubEventId, setSelectedSubEventId] = useState<string | undefined>(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('subEvent') || undefined;
-    }
-    return undefined;
-  });
-  
+  const [selectedBusinessEventId, setSelectedBusinessEventId] = useState<string | undefined>(undefined);
+  const [selectedSubEventId, setSelectedSubEventId] = useState<string | undefined>(undefined);
   const [filters, setFilters] = useState<SearchFiltersType>({});
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [requests, setRequests] = useState<WorkRequest[]>(mockRequests);
+  const [mounted, setMounted] = useState(false);
   
-  // Redirect to overview if no event is selected
+  // Read URL params after mount to avoid hydration mismatch
+  useEffect(() => {
+    const eventParam = searchParams.get('event');
+    const subEventParam = searchParams.get('subEvent');
+    
+    if (eventParam) {
+      setSelectedBusinessEventId(eventParam);
+    }
+    if (subEventParam) {
+      setSelectedSubEventId(subEventParam);
+    }
+    
+    setMounted(true);
+  }, [searchParams]);
+  
+  // Redirect to overview if no event is selected after mount
+  useEffect(() => {
+    if (mounted && !selectedBusinessEventId) {
+      router.replace('/overview');
+    }
+  }, [mounted, selectedBusinessEventId, router]);
+  
+  // Show loading during initial mount
+  if (!mounted) {
+    return null;
+  }
+  
+  // Redirect check
   if (!selectedBusinessEventId) {
-    router.replace('/overview');
     return null;
   }
 
@@ -133,7 +146,6 @@ export default function DashboardPage() {
   }, [selectedBusinessEventId, selectedSubEventId, filters]);
 
   const handleEventSelect = (businessEventId: string, subEventId?: string) => {
-    console.log('[v0] handleEventSelect called:', { businessEventId, subEventId });
     setSelectedBusinessEventId(businessEventId);
     setSelectedSubEventId(subEventId);
   };
@@ -174,12 +186,6 @@ export default function DashboardPage() {
   };
 
   const pageInfo = getPageInfo();
-
-  console.log('[v0] Current state:', { 
-    selectedBusinessEventId, 
-    selectedSubEventId,
-    hasSubEventId: !!selectedSubEventId 
-  });
 
   return (
     <DashboardLayout
@@ -229,14 +235,10 @@ export default function DashboardPage() {
 
         {/* Bottom Section - Sub-Event Detail Pane */}
         {selectedSubEventId && (() => {
-          console.log('[v0] Rendering sub-event pane section, selectedSubEventId:', selectedSubEventId);
           const businessEvent = mockBusinessEvents.find((be) => be.id === selectedBusinessEventId);
           const subEvent = businessEvent?.subEvents.find((se) => se.id === selectedSubEventId);
           
-          console.log('[v0] Found businessEvent:', businessEvent?.name, 'Found subEvent:', subEvent?.name);
-          
           if (subEvent && businessEvent) {
-            console.log('[v0] Rendering SubEventDetailPane component');
             return (
               <div className="flex-shrink-0">
                 <SubEventDetailPane
@@ -248,7 +250,6 @@ export default function DashboardPage() {
               </div>
             );
           }
-          console.log('[v0] Not rendering pane - missing subEvent or businessEvent');
           return null;
         })()}
       </div>
