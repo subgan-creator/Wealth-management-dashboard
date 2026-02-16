@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/dashboard-layout';
 import { BusinessEventTree } from '@/components/business-event-tree';
-import { StatsOverview } from '@/components/stats-overview';
 import { SearchFilters } from '@/components/search-filters';
 import { RequestList } from '@/components/request-list';
 import { CreateRequestDialog } from '@/components/create-request-dialog';
@@ -14,7 +13,7 @@ import { SubEventDetailPane } from '@/components/sub-event-detail-pane';
 import { mockRequests, mockBusinessEvents } from '@/lib/mock-data';
 import type { WorkRequest, SearchFilters as SearchFiltersType } from '@/lib/types';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   
@@ -47,23 +46,15 @@ export default function DashboardPage() {
     }
   }, [mounted, selectedBusinessEventId, router]);
 
-  const handleCreateRequest = (newRequestData: Omit<WorkRequest, 'id' | 'createdAt' | 'updatedAt' | 'timeline'>) => {
+  const handleCreateRequest = (newRequestData: Omit<WorkRequest, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newRequest: WorkRequest = {
       ...newRequestData,
       id: `REQ-${Date.now()}`,
       createdAt: new Date(),
       updatedAt: new Date(),
-      timeline: [
-        {
-          date: new Date(),
-          action: 'Request created',
-          user: newRequestData.advisorName,
-        },
-      ],
     };
 
     setRequests([newRequest, ...requests]);
-    console.log('[v0] New request created:', newRequest);
   };
 
   // Filter requests based on business event, sub-event, and search filters
@@ -133,7 +124,7 @@ export default function DashboardPage() {
     });
 
     return filtered;
-  }, [selectedBusinessEventId, selectedSubEventId, filters]);
+  }, [selectedBusinessEventId, selectedSubEventId, filters, requests]);
 
   const handleEventSelect = (businessEventId: string, subEventId?: string) => {
     setSelectedBusinessEventId(businessEventId);
@@ -256,5 +247,13 @@ export default function DashboardPage() {
         onSubmit={handleCreateRequest}
       />
     </DashboardLayout>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardContent />
+    </Suspense>
   );
 }
