@@ -1,12 +1,13 @@
 'use client';
 
 import { useState } from 'react';
-import { X, FileText, MessageSquare, Paperclip, BarChart3, Users, Clock, Calendar } from 'lucide-react';
+import { X, MessageSquare, Paperclip, AlertCircle, CheckCircle2, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { cn } from '@/lib/utils';
 import type { SubEvent, WorkRequest } from '@/lib/types';
 
 interface SubEventDetailPaneProps {
@@ -16,282 +17,227 @@ interface SubEventDetailPaneProps {
   onClose: () => void;
 }
 
+const statusConfig = {
+  new: { label: 'New', color: 'bg-blue-100 text-blue-800' },
+  'in-progress': { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' },
+  'on-hold': { label: 'On Hold', color: 'bg-gray-100 text-gray-800' },
+  'pending-review': { label: 'Pending Review', color: 'bg-purple-100 text-purple-800' },
+  completed: { label: 'Completed', color: 'bg-green-100 text-green-800' },
+  cancelled: { label: 'Cancelled', color: 'bg-red-100 text-red-800' },
+  expired: { label: 'Expired', color: 'bg-orange-100 text-orange-800' },
+};
+
+const priorityConfig = {
+  low: { label: 'Low', color: 'text-blue-600' },
+  normal: { label: 'Normal', color: 'text-gray-600' },
+  high: { label: 'High', color: 'text-orange-600' },
+  urgent: { label: 'Urgent', color: 'text-red-600' },
+};
+
 export function SubEventDetailPane({
   subEvent,
   businessEventName,
   requests,
   onClose,
 }: SubEventDetailPaneProps) {
-  const [activeTab, setActiveTab] = useState('overview');
-
-  // Calculate statistics
-  const totalRequests = requests.length;
-  const statusBreakdown = {
-    new: requests.filter((r) => r.status === 'new').length,
-    'in-progress': requests.filter((r) => r.status === 'in-progress').length,
-    'on-hold': requests.filter((r) => r.status === 'on-hold').length,
-    completed: requests.filter((r) => r.status === 'completed').length,
-    cancelled: requests.filter((r) => r.status === 'cancelled').length,
-  };
-
-  const slaBreakdown = {
-    'on-track': requests.filter((r) => r.slaStatus === 'on-track').length,
-    'at-risk': requests.filter((r) => r.slaStatus === 'at-risk').length,
-    breached: requests.filter((r) => r.slaStatus === 'breached').length,
-  };
-
-  // Get unique advisors and clients
-  const uniqueAdvisors = Array.from(new Set(requests.map((r) => r.advisorName)));
-  const uniqueClients = Array.from(new Set(requests.map((r) => r.clientName)));
-
-  // Get all comments and attachments from requests
-  const allComments = requests.flatMap((r) => 
-    r.comments.map((c) => ({ ...c, requestId: r.id, requestTitle: r.title }))
+  const [selectedRequest, setSelectedRequest] = useState<WorkRequest | null>(
+    requests.length > 0 ? requests[0] : null
   );
-  const allAttachments = requests.flatMap((r) => 
-    r.attachments.map((a) => ({ ...a, requestId: r.id, requestTitle: r.title }))
-  );
+  const [activeTab, setActiveTab] = useState('request-details');
 
-  // Get recent activity from timeline
-  const recentActivity = requests
-    .flatMap((r) => 
-      r.auditLog.map((entry) => ({ ...entry, requestId: r.id, requestTitle: r.title, date: entry.timestamp }))
-    )
-    .sort((a, b) => b.date.getTime() - a.date.getTime())
-    .slice(0, 10);
+  const displayRequests = requests.slice(0, 3); // Show max 3 items in list
 
   return (
-    <div className="border-t bg-card animate-in slide-in-from-bottom-5 duration-300 shadow-lg">
-      <div className="px-6 py-4">
-        {/* Header */}
-        <div className="flex items-start justify-between mb-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-1">
-              <span>{businessEventName}</span>
-              <span>›</span>
-              <span className="font-medium">{subEvent.name}</span>
+    <div className="border-t bg-card animate-in slide-in-from-bottom-5 duration-300 shadow-lg h-96">
+      <div className="flex h-full">
+        {/* Left: Request List */}
+        <div className="flex-1 border-r overflow-y-auto">
+          <div className="px-4 py-3">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+              {displayRequests.length} Request{displayRequests.length !== 1 ? 's' : ''}
+            </p>
+            <div className="space-y-2">
+              {displayRequests.map((request) => (
+                <div
+                  key={request.id}
+                  onClick={() => setSelectedRequest(request)}
+                  className={cn(
+                    'p-3 rounded-lg border cursor-pointer transition-all',
+                    selectedRequest?.id === request.id
+                      ? 'bg-primary/10 border-primary'
+                      : 'bg-muted/30 border-border hover:bg-muted/50'
+                  )}
+                >
+                  <div className="flex items-start gap-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{request.title}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge 
+                          variant="secondary" 
+                          className={cn('text-xs', statusConfig[request.status as keyof typeof statusConfig]?.color)}
+                        >
+                          {statusConfig[request.status as keyof typeof statusConfig]?.label || request.status}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">{request.clientName}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Sub-Event Details</h3>
           </div>
-          <Button variant="ghost" size="icon" onClick={onClose} className="shrink-0">
-            <X className="h-4 w-4" />
-          </Button>
         </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList>
-            <TabsTrigger value="overview" className="gap-2">
-              <FileText className="h-3.5 w-3.5" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="activity" className="gap-2">
-              <Clock className="h-3.5 w-3.5" />
-              Activity ({recentActivity.length})
-            </TabsTrigger>
-            <TabsTrigger value="comments" className="gap-2">
-              <MessageSquare className="h-3.5 w-3.5" />
-              Comments ({allComments.length})
-            </TabsTrigger>
-            <TabsTrigger value="attachments" className="gap-2">
-              <Paperclip className="h-3.5 w-3.5" />
-              Attachments ({allAttachments.length})
-            </TabsTrigger>
-            <TabsTrigger value="statistics" className="gap-2">
-              <BarChart3 className="h-3.5 w-3.5" />
-              Statistics
-            </TabsTrigger>
-          </TabsList>
-
-          {/* Overview Tab */}
-          <TabsContent value="overview" className="mt-4 space-y-4">
-            <div className="grid grid-cols-3 gap-6">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">Description</p>
-                <p className="text-sm text-foreground">{subEvent.description || 'No description provided'}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">Total Requests</p>
-                <p className="text-2xl font-bold text-foreground">{totalRequests}</p>
-              </div>
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">Sub-Event ID</p>
-                <p className="text-sm font-mono text-foreground">{subEvent.id}</p>
-              </div>
-            </div>
-
-            <Separator />
-
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-3">Status Breakdown</p>
-                <div className="space-y-2">
-                  {Object.entries(statusBreakdown).map(([status, count]) => (
-                    <div key={status} className="flex items-center justify-between text-sm">
-                      <span className="capitalize">{status.replace('-', ' ')}</span>
-                      <Badge variant="secondary">{count}</Badge>
-                    </div>
-                  ))}
+        {/* Right: Request Details */}
+        <div className="flex-1 overflow-y-auto">
+          {selectedRequest ? (
+            <div className="px-4 py-3">
+              {/* Header */}
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground mb-1">{businessEventName} › {subEvent.name}</p>
+                  <h4 className="text-sm font-semibold text-foreground">{selectedRequest.title}</h4>
                 </div>
+                <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6 shrink-0">
+                  <X className="h-3 w-3" />
+                </Button>
               </div>
 
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-3">SLA Breakdown</p>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
-                    <span>On Track</span>
-                    <Badge variant="secondary" className="bg-success/10 text-success">
-                      {slaBreakdown['on-track']}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>At Risk</span>
-                    <Badge variant="secondary" className="bg-warning/10 text-warning">
-                      {slaBreakdown['at-risk']}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Breached</span>
-                    <Badge variant="secondary" className="bg-destructive/10 text-destructive">
-                      {slaBreakdown.breached}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
+              {/* Tabs */}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="h-8 text-xs">
+                  <TabsTrigger value="request-details" className="text-xs">Details</TabsTrigger>
+                  <TabsTrigger value="comments" className="text-xs">Comments</TabsTrigger>
+                  <TabsTrigger value="attachments" className="text-xs">Files</TabsTrigger>
+                  <TabsTrigger value="activity" className="text-xs">Activity</TabsTrigger>
+                </TabsList>
 
-          {/* Activity Tab */}
-          <TabsContent value="activity" className="mt-4">
-            <div className="space-y-3 max-h-64 overflow-y-auto">
-              {recentActivity.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">No recent activity</p>
-              ) : (
-                recentActivity.map((activity, idx) => (
-                  <div key={idx} className="flex gap-3 text-sm">
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted">
-                      <Clock className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-foreground">{activity.action}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{activity.userName}</span>
-                        <span>·</span>
-                        <span>{activity.requestTitle}</span>
-                        <span>·</span>
-                        <span>{activity.date.toLocaleDateString()}</span>
-                      </div>
+                {/* Request Details Tab */}
+                <TabsContent value="request-details" className="mt-2 space-y-3 text-sm">
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Status & Priority</p>
+                    <div className="flex gap-2">
+                      <Badge className={statusConfig[selectedRequest.status as keyof typeof statusConfig]?.color}>
+                        {statusConfig[selectedRequest.status as keyof typeof statusConfig]?.label}
+                      </Badge>
+                      <Badge variant="outline">
+                        {priorityConfig[selectedRequest.priority as keyof typeof priorityConfig]?.label}
+                      </Badge>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </TabsContent>
 
-          {/* Comments Tab */}
-          <TabsContent value="comments" className="mt-4">
-            <div className="space-y-3 max-h-64 overflow-y-auto">
-              {allComments.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">No comments yet</p>
-              ) : (
-                allComments.map((comment) => (
-                  <div key={comment.id} className="flex gap-3 p-3 rounded-lg border bg-muted/30">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="text-xs">
-                        {comment.userName.split(' ').map(n => n[0]).join('')}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-medium">{comment.userName}</p>
-                        {comment.isInternal && (
-                          <Badge variant="outline" className="text-xs">Internal</Badge>
-                        )}
-                      </div>
-                      <p className="text-sm text-foreground">{comment.content}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{comment.requestTitle}</span>
-                        <span>·</span>
-                        <span>{comment.createdAt.toLocaleDateString()}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </TabsContent>
+                  <Separator className="my-2" />
 
-          {/* Attachments Tab */}
-          <TabsContent value="attachments" className="mt-4">
-            <div className="space-y-2 max-h-64 overflow-y-auto">
-              {allAttachments.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-8">No attachments</p>
-              ) : (
-                allAttachments.map((attachment) => (
-                  <div key={attachment.id} className="flex items-center gap-3 p-3 rounded-lg border bg-muted/30">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10">
-                      <Paperclip className="h-5 w-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{attachment.fileName}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <span>{attachment.requestTitle}</span>
-                        <span>·</span>
-                        <span>{(attachment.fileSize / 1024).toFixed(1)} KB</span>
-                        <span>·</span>
-                        <span>{attachment.uploadedByName}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </TabsContent>
-
-          {/* Statistics Tab */}
-          <TabsContent value="statistics" className="mt-4">
-            <div className="grid grid-cols-2 gap-6">
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-3">Active Participants</p>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-                      <Users className="h-5 w-5 text-primary" />
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Client</p>
+                      <p className="text-sm text-foreground">{selectedRequest.clientName}</p>
                     </div>
                     <div>
-                      <p className="text-lg font-semibold">{uniqueAdvisors.length}</p>
-                      <p className="text-xs text-muted-foreground">Advisors</p>
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Advisor</p>
+                      <p className="text-sm text-foreground">{selectedRequest.advisorName}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent/10">
-                      <Users className="h-5 w-5 text-accent" />
-                    </div>
-                    <div>
-                      <p className="text-lg font-semibold">{uniqueClients.length}</p>
-                      <p className="text-xs text-muted-foreground">Clients</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
 
-              <div>
-                <p className="text-xs font-medium text-muted-foreground mb-3">Top Advisors</p>
-                <div className="space-y-2">
-                  {uniqueAdvisors.slice(0, 5).map((advisor) => {
-                    const count = requests.filter((r) => r.advisorName === advisor).length;
-                    return (
-                      <div key={advisor} className="flex items-center justify-between text-sm">
-                        <span className="truncate">{advisor}</span>
-                        <Badge variant="secondary">{count}</Badge>
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">SLA Status</p>
+                    <div className="flex items-center gap-2">
+                      {selectedRequest.slaStatus === 'on-track' && (
+                        <>
+                          <CheckCircle2 className="h-3.5 w-3.5 text-green-600" />
+                          <span className="text-xs text-green-600 font-medium">On Track</span>
+                        </>
+                      )}
+                      {selectedRequest.slaStatus === 'at-risk' && (
+                        <>
+                          <AlertCircle className="h-3.5 w-3.5 text-orange-600" />
+                          <span className="text-xs text-orange-600 font-medium">At Risk</span>
+                        </>
+                      )}
+                      {selectedRequest.slaStatus === 'breached' && (
+                        <>
+                          <AlertCircle className="h-3.5 w-3.5 text-red-600" />
+                          <span className="text-xs text-red-600 font-medium">Breached</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Due Date</p>
+                    <p className="text-sm text-foreground">{selectedRequest.dueDate.toLocaleDateString()}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground mb-1">Created</p>
+                    <p className="text-sm text-foreground">{selectedRequest.createdAt.toLocaleDateString()}</p>
+                  </div>
+                </TabsContent>
+
+                {/* Comments Tab */}
+                <TabsContent value="comments" className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+                  {selectedRequest.comments.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">No comments yet</p>
+                  ) : (
+                    selectedRequest.comments.map((comment) => (
+                      <div key={comment.id} className="flex gap-2 p-2 rounded-lg bg-muted/30">
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-xs">
+                            {comment.userName.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium">{comment.userName}</p>
+                          <p className="text-xs text-foreground mt-0.5">{comment.content}</p>
+                        </div>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
+                    ))
+                  )}
+                </TabsContent>
+
+                {/* Attachments Tab */}
+                <TabsContent value="attachments" className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+                  {selectedRequest.attachments.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">No attachments</p>
+                  ) : (
+                    selectedRequest.attachments.map((attachment) => (
+                      <div key={attachment.id} className="flex items-center gap-2 p-2 rounded-lg bg-muted/30">
+                        <Paperclip className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs font-medium truncate">{attachment.fileName}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(attachment.fileSize / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </TabsContent>
+
+                {/* Activity Tab */}
+                <TabsContent value="activity" className="mt-2 space-y-2 max-h-64 overflow-y-auto">
+                  {selectedRequest.auditLog.length === 0 ? (
+                    <p className="text-xs text-muted-foreground text-center py-4">No activity yet</p>
+                  ) : (
+                    selectedRequest.auditLog.map((entry) => (
+                      <div key={entry.id} className="flex gap-2 text-xs">
+                        <Clock className="h-3.5 w-3.5 text-muted-foreground shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-foreground">{entry.action}</p>
+                          <p className="text-muted-foreground">{entry.userName} · {entry.timestamp.toLocaleDateString()}</p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
-          </TabsContent>
-        </Tabs>
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <p className="text-sm text-muted-foreground">No requests to display</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
