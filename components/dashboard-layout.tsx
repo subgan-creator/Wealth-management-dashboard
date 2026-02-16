@@ -41,7 +41,7 @@ export function DashboardLayout({ children, sidebar }: DashboardLayoutProps) {
         <div className="flex h-full flex-col">
           {/* Sidebar Header */}
           <div className="flex h-16 items-center justify-between border-b border-border px-4">
-            <div className="flex items-center gap-2">
+            <Link href="/overview" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <div className="flex h-8 w-8 items-center justify-center rounded bg-primary text-primary-foreground font-semibold text-sm">
                 WM
               </div>
@@ -49,7 +49,7 @@ export function DashboardLayout({ children, sidebar }: DashboardLayoutProps) {
                 <span className="text-sm font-semibold text-foreground">Wealth Management</span>
                 <span className="text-xs text-muted-foreground">Request Dashboard</span>
               </div>
-            </div>
+            </Link>
           </div>
 
           {/* Sidebar Content */}

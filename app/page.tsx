@@ -15,11 +15,33 @@ import type { WorkRequest, SearchFilters as SearchFiltersType } from '@/lib/type
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [selectedBusinessEventId, setSelectedBusinessEventId] = useState<string | undefined>('all');
-  const [selectedSubEventId, setSelectedSubEventId] = useState<string | undefined>();
+  
+  // Check URL params for initial selection
+  const [selectedBusinessEventId, setSelectedBusinessEventId] = useState<string | undefined>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('event') || undefined;
+    }
+    return undefined;
+  });
+  
+  const [selectedSubEventId, setSelectedSubEventId] = useState<string | undefined>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('subEvent') || undefined;
+    }
+    return undefined;
+  });
+  
   const [filters, setFilters] = useState<SearchFiltersType>({});
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [requests, setRequests] = useState<WorkRequest[]>(mockRequests);
+  
+  // Redirect to overview if no event is selected
+  if (!selectedBusinessEventId) {
+    router.replace('/overview');
+    return null;
+  }
 
   const handleCreateRequest = (newRequestData: Omit<WorkRequest, 'id' | 'createdAt' | 'updatedAt' | 'timeline'>) => {
     const newRequest: WorkRequest = {
@@ -119,17 +141,16 @@ export default function DashboardPage() {
   };
 
   const getPageInfo = () => {
-    if (selectedBusinessEventId === 'all' || !selectedBusinessEventId) {
+    if (selectedBusinessEventId === 'all') {
       return {
-        title: 'Dashboard Overview',
-        subtitle: 'Monitor and manage all work requests across your organization',
-        showStats: true,
+        title: 'All Requests',
+        subtitle: 'View and manage all work requests across your organization',
       };
     }
 
     const businessEvent = mockBusinessEvents.find((be) => be.id === selectedBusinessEventId);
     if (!businessEvent) {
-      return { title: 'Requests', subtitle: '', showStats: false };
+      return { title: 'Requests', subtitle: '' };
     }
 
     if (selectedSubEventId) {
@@ -137,14 +158,12 @@ export default function DashboardPage() {
       return {
         title: `${businessEvent.name} - ${subEvent?.name || 'Sub-Event'}`,
         subtitle: subEvent?.description || businessEvent.description,
-        showStats: false,
       };
     }
 
     return {
       title: businessEvent.name,
       subtitle: businessEvent.description,
-      showStats: false,
     };
   };
 
@@ -175,33 +194,18 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        {/* Stats Overview - Only show on landing page */}
-        {pageInfo.showStats && (
-          <div>
-            <StatsOverview requests={requests} />
-          </div>
-        )}
-
         {/* Search and Filters */}
         <div>
-          {!pageInfo.showStats && (
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              Requests ({filteredRequests.length})
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">
+              {filteredRequests.length} Request{filteredRequests.length !== 1 ? 's' : ''}
             </h3>
-          )}
+          </div>
           <SearchFilters filters={filters} onFiltersChange={setFilters} />
         </div>
 
         {/* Request List */}
         <div>
-          {pageInfo.showStats && (
-            <div className="flex items-center justify-between mb-3">
-              <h3 className="text-lg font-semibold text-foreground">All Requests</h3>
-              <p className="text-sm text-muted-foreground">
-                {filteredRequests.length} request{filteredRequests.length !== 1 ? 's' : ''}
-              </p>
-            </div>
-          )}
           <RequestList
             requests={filteredRequests}
             onRequestSelect={handleRequestSelect}
