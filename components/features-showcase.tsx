@@ -31,7 +31,7 @@ const features = [
   {
     icon: Bell,
     title: 'User Preferences',
-    description: 'Each team member controls what they see and how they're notified',
+    description: "Each team member controls what they see and how they're notified",
     color: 'text-red-600',
   },
   {
