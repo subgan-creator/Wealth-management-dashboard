@@ -3,12 +3,23 @@
 import { FeaturesShowcase } from '@/components/features-showcase';
 import { Button } from '@/components/ui/button';
 import { DashboardLayout } from '@/components/dashboard-layout';
+import { BusinessEventTree } from '@/components/business-event-tree';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FeaturesPage() {
+  const handleEventSelect = (businessEventId: string, subEventId?: string) => {
+    window.location.href = `/?event=${businessEventId}${subEventId ? `&subEvent=${subEventId}` : ''}`;
+  };
+
   return (
-    <DashboardLayout sidebar={<></>}>
+    <DashboardLayout sidebar={
+      <BusinessEventTree
+        onEventSelect={handleEventSelect}
+        selectedBusinessEventId={undefined}
+        selectedSubEventId={undefined}
+      />
+    }>
       <div className="container mx-auto px-6 py-8 space-y-12">
         {/* Hero Section */}
         <section className="text-center">

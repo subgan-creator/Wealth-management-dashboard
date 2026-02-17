@@ -15,19 +15,12 @@ export default function OverviewPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [requests, setRequests] = useState<WorkRequest[]>(mockRequests);
 
-  const handleCreateRequest = (newRequestData: Omit<WorkRequest, 'id' | 'createdAt' | 'updatedAt' | 'timeline'>) => {
+  const handleCreateRequest = (newRequestData: Omit<WorkRequest, 'id' | 'createdAt' | 'updatedAt'>) => {
     const newRequest: WorkRequest = {
       ...newRequestData,
       id: `REQ-${Date.now()}`,
       createdAt: new Date(),
       updatedAt: new Date(),
-      timeline: [
-        {
-          date: new Date(),
-          action: 'Request created',
-          user: newRequestData.advisorName,
-        },
-      ],
     };
 
     setRequests([newRequest, ...requests]);
