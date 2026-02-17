@@ -8,7 +8,7 @@ import Link from 'next/link';
 
 export default function FeaturesPage() {
   return (
-    <DashboardLayout>
+    <DashboardLayout sidebar={<></>}>
       <div className="container mx-auto px-6 py-8 space-y-12">
         {/* Hero Section */}
         <section className="text-center">
