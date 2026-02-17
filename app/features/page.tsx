@@ -2,15 +2,16 @@
 
 import { FeaturesShowcase } from '@/components/features-showcase';
 import { Button } from '@/components/ui/button';
+import { DashboardLayout } from '@/components/dashboard-layout';
 import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function FeaturesPage() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* Hero Section */}
-      <section className="pt-20 pb-12 px-6">
-        <div className="container mx-auto text-center">
+    <DashboardLayout>
+      <div className="container mx-auto px-6 py-8 space-y-12">
+        {/* Hero Section */}
+        <section className="text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 text-balance">
             Advanced Request Management for Wealth Management Teams
           </h1>
@@ -28,15 +29,13 @@ export default function FeaturesPage() {
               Schedule Demo
             </Button>
           </div>
-        </div>
-      </section>
+        </section>
 
-      {/* Features Section */}
-      <FeaturesShowcase />
+        {/* Features Section */}
+        <FeaturesShowcase />
 
-      {/* CTA Section */}
-      <section className="py-16 px-6 bg-muted/30">
-        <div className="container mx-auto text-center">
+        {/* CTA Section */}
+        <section className="py-16 px-6 bg-muted/30 rounded-lg text-center">
           <h2 className="text-3xl font-bold text-foreground mb-4">Ready to transform your request management?</h2>
           <p className="text-base text-muted-foreground mb-8 max-w-2xl mx-auto">
             Join teams that are already using our dashboard to manage requests more efficiently.
@@ -47,8 +46,8 @@ export default function FeaturesPage() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
-        </div>
-      </section>
-    </div>
+        </section>
+      </div>
+    </DashboardLayout>
   );
 }
