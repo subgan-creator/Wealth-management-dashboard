@@ -79,6 +79,13 @@ export function DashboardLayout({ children, sidebar }: DashboardLayoutProps) {
           </div>
 
           <div className="flex items-center gap-3">
+            {/* Features Link */}
+            <Link href="/features">
+              <Button variant="ghost" size="sm" className="text-sm">
+                Features
+              </Button>
+            </Link>
+
             {/* Settings */}
             <Link href="/settings/business-events">
               <Button variant="ghost" size="icon">
