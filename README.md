@@ -2,6 +2,11 @@
 
 A modern, intelligent request management system designed specifically for wealth management teams. Streamline complex workflows, automate routing, and keep your team coordinated with real-time tracking and intelligent request management.
 
+## 🧠 Product Context
+
+As a wealth management product leader, I experienced firsthand how advisors and operations teams struggle with fragmented request tracking across email, spreadsheets, and legacy tools. I built this dashboard to prototype a unified request management system — exploring how smart routing, SLA visibility, and configurable workflows could reduce operational friction. Built using v0.dev 
+and deployed on Vercel.
+
 ## 🎯 Overview
 
 The Wealth Management Request Dashboard is a comprehensive web application that helps financial advisory teams manage work requests efficiently. It provides smart request routing, SLA tracking, team management, and detailed request lifecycle management—all in an intuitive, user-friendly interface.
